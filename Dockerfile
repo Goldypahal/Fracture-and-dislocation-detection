@@ -8,22 +8,27 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
-# Set working directory
-WORKDIR /app
+# Set up a new user named "user" with UID 1000
+RUN useradd -m -u 1000 user
+USER user
+ENV HOME=/home/user \
+    PATH=/home/user/.local/bin:$PATH
 
-# Copy requirements and install dependencies
-COPY files/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+WORKDIR $HOME/app
 
-# Copy application files and model checkpoints
-COPY files/ /app/files/
-COPY checkpoints/ /app/checkpoints/
+# Copy requirements and install dependencies as the user
+COPY --chown=user files/requirements.txt .
+RUN pip install --no-cache-dir --user -r requirements.txt
+
+# Copy application files and model checkpoints with correct ownership
+COPY --chown=user files/ $HOME/app/files/
+COPY --chown=user checkpoints/ $HOME/app/checkpoints/
 
 # Set PYTHONPATH environment variable so python can resolve files/ imports
-ENV PYTHONPATH="/app/files"
+ENV PYTHONPATH="$HOME/app/files"
 
-# Expose port 8000 for the FastAPI server
-EXPOSE 8000
+# Expose port 7860 for Hugging Face Spaces
+EXPOSE 7860
 
-# Run FastAPI server using uvicorn
-CMD ["uvicorn", "files.api:app", "--host", "0.0.0.0", "--port", "8000"]
+# Run FastAPI server using uvicorn on port 7860
+CMD ["uvicorn", "files.api:app", "--host", "0.0.0.0", "--port", "7860"]

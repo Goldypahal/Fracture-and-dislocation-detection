@@ -1,0 +1,20 @@
+{
+  "version": 2,
+  "cleanUrls": true,
+  "builds": [
+    {
+      "src": "files/index.html",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "^/files/(.*)",
+      "dest": "/files/$1"
+    },
+    {
+      "src": "^/(.*)",
+      "dest": "/files/index.html"
+    }
+  ]
+}
