@@ -1,3 +1,13 @@
+---
+title: Fracture and Dislocation Detector
+emoji: 🦴
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # Multi-Modal 3-Fold Ensemble Bone Fracture & Dislocation Detection
 
 A production-grade, offline clinical decision-support system that integrates a **3-Fold PyTorch Deep Learning Ensemble** (EfficientNetV2) and **Patient Clinical Feature Fusion** to identify bone fractures and joint dislocations. The system is designed to provide calibrated medical predictions, explainability overlays, and quantitative clinical uncertainty boundaries.
