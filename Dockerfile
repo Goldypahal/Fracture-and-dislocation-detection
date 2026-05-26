@@ -16,7 +16,10 @@ ENV HOME=/home/user \
 
 WORKDIR $HOME/app
 
-# Copy requirements and install dependencies as the user
+# Pre-install CPU-only PyTorch to avoid heavy CUDA wheels OOMing or taking forever on Hugging Face
+RUN pip install --no-cache-dir --user torch torchvision --index-url https://download.pytorch.org/whl/cpu
+
+# Copy requirements and install the remaining dependencies as the user
 COPY --chown=user files/requirements.txt .
 RUN pip install --no-cache-dir --user -r requirements.txt
 
