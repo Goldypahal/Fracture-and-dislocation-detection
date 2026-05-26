@@ -664,9 +664,38 @@
         <p>Advanced Clinical AI Console (Offline Local Integration mode). Pre-Calibrated temperature states: T1=1.48 | T2=1.52 | T3=1.50.</p>
     </footer>
 
+    <!-- Settings Modal -->
+    <div id="settings-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(8px); z-index: 1000; align-items: center; justify-content: center;">
+        <div class="glass-panel" style="width: 90%; max-width: 500px; padding: 2rem; border-radius: 16px; border: 1px solid var(--card-border); background: #0f172a; box-shadow: var(--shadow-premium); gap: 1.2rem; display: flex; flex-direction: column;">
+            <div class="panel-title" style="margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 0.75rem;">
+                <h2 style="font-size: 1.25rem;">🔧 API Server Settings</h2>
+                <button id="close-settings" style="background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer;">&times;</button>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; margin: 0;">
+                This frontend dashboard connects to the PyTorch 3-Fold Ensemble API. Set the endpoint address below. Use a local address or a live production URL (e.g. Hugging Face Spaces, Render, or Railway).
+            </p>
+            
+            <div class="input-group" style="display: flex; flex-direction: column; gap: 0.4rem;">
+                <label for="api-url-input" style="font-size: 0.8rem; color: var(--text-muted); font-weight: 500;">Backend API URL</label>
+                <input type="text" id="api-url-input" placeholder="e.g. https://goldypahal-fractureanddislocationdetector.hf.space" style="width: 100%; background: rgba(15, 23, 42, 0.8); border: 1px solid var(--card-border); border-radius: 8px; padding: 0.75rem 1rem; color: var(--text-main); font-family: inherit; font-size: 0.9rem; outline: none; transition: border-color 0.2s;" required>
+            </div>
+
+            <div id="connection-test-feedback" style="display: none; font-size: 0.8rem; font-weight: 500; min-height: 1.2rem; margin-top: -0.5rem;"></div>
+            
+            <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 0.5rem;">
+                <button class="action-btn" id="test-conn-btn" style="background: rgba(255,255,255,0.08); border: 1px solid var(--card-border); color: var(--text-main); font-size: 0.9rem; padding: 0.6rem 1.2rem; cursor: pointer; box-shadow: none; border-radius: 8px; font-weight: 600;">🧪 Test Connection</button>
+                <button class="action-btn" id="save-settings-btn" style="background: var(--accent-primary); color: #0f172a; border: none; font-size: 0.9rem; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);">💾 Save & Close</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // ── API CONFIGURATION ──
-        let API_URL = localStorage.getItem("bone_fracture_api_url") || "http://localhost:8000";
+        let API_URL = localStorage.getItem("bone_fracture_api_url");
+        if (!API_URL || API_URL === "http://localhost:8000") {
+            API_URL = "https://goldypahal-fractureanddislocationdetector.hf.space";
+            localStorage.setItem("bone_fracture_api_url", API_URL);
+        }
 
         // ── DOM ELEMENTS ──
         const imageInput = document.getElementById("image-input");
@@ -952,30 +981,5 @@
             }
         });
     </script>
-
-    <!-- Settings Modal -->
-    <div id="settings-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(8px); z-index: 1000; align-items: center; justify-content: center;">
-        <div class="glass-panel" style="width: 90%; max-width: 500px; padding: 2rem; border-radius: 16px; border: 1px solid var(--card-border); background: #0f172a; box-shadow: var(--shadow-premium); gap: 1.2rem; display: flex; flex-direction: column;">
-            <div class="panel-title" style="margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 0.75rem;">
-                <h2 style="font-size: 1.25rem;">🔧 API Server Settings</h2>
-                <button id="close-settings" style="background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer;">&times;</button>
-            </div>
-            <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; margin: 0;">
-                This frontend dashboard connects to the PyTorch 3-Fold Ensemble API. Set the endpoint address below. Use a local address or a live production URL (e.g. Hugging Face Spaces, Render, or Railway).
-            </p>
-            
-            <div class="input-group" style="display: flex; flex-direction: column; gap: 0.4rem;">
-                <label for="api-url-input" style="font-size: 0.8rem; color: var(--text-muted); font-weight: 500;">Backend API URL</label>
-                <input type="text" id="api-url-input" placeholder="e.g. http://localhost:8000" style="width: 100%; background: rgba(15, 23, 42, 0.8); border: 1px solid var(--card-border); border-radius: 8px; padding: 0.75rem 1rem; color: var(--text-main); font-family: inherit; font-size: 0.9rem; outline: none; transition: border-color 0.2s;" required>
-            </div>
-
-            <div id="connection-test-feedback" style="display: none; font-size: 0.8rem; font-weight: 500; min-height: 1.2rem; margin-top: -0.5rem;"></div>
-            
-            <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 0.5rem;">
-                <button class="action-btn" id="test-conn-btn" style="background: rgba(255,255,255,0.08); border: 1px solid var(--card-border); color: var(--text-main); font-size: 0.9rem; padding: 0.6rem 1.2rem; cursor: pointer; box-shadow: none; border-radius: 8px; font-weight: 600;">🧪 Test Connection</button>
-                <button class="action-btn" id="save-settings-btn" style="background: var(--accent-primary); color: #0f172a; border: none; font-size: 0.9rem; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);">💾 Save & Close</button>
-            </div>
-        </div>
-    </div>
 </body>
 </html>
