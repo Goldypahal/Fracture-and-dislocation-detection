@@ -3,18 +3,14 @@
   "cleanUrls": true,
   "builds": [
     {
-      "src": "files/index.html",
+      "src": "files/**",
       "use": "@vercel/static"
     }
   ],
   "routes": [
     {
-      "src": "^/files/(.*)",
+      "src": "/(.*)",
       "dest": "/files/$1"
-    },
-    {
-      "src": "^/(.*)",
-      "dest": "/files/index.html"
     }
   ]
 }
