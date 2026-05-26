@@ -493,9 +493,12 @@
                 <p>3-Fold Calibrated Clinical Inference & Grad-CAM++ Web UI</p>
             </div>
         </div>
-        <div class="api-status" id="api-status">
-            <div class="status-dot" id="status-dot"></div>
-            <span id="status-text">Checking Connection...</span>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <div class="api-status" id="api-status">
+                <div class="status-dot" id="status-dot"></div>
+                <span id="status-text">Checking Connection...</span>
+            </div>
+            <button id="settings-btn" style="background: rgba(255, 255, 255, 0.05); border: 1px solid var(--card-border); color: var(--text-main); font-size: 1rem; padding: 0.4rem; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 2.2rem; height: 2.2rem; transition: all 0.2s;" title="Configure API Endpoint">⚙️</button>
         </div>
     </header>
 
@@ -663,7 +666,7 @@
 
     <script>
         // ── API CONFIGURATION ──
-        const API_URL = "http://localhost:8000";
+        let API_URL = localStorage.getItem("bone_fracture_api_url") || "http://localhost:8000";
 
         // ── DOM ELEMENTS ──
         const imageInput = document.getElementById("image-input");
@@ -886,6 +889,93 @@
             // Trigger visual transitions
             reportContent.style.display = "block";
         }
+
+        // ── SETTINGS MODAL INTERACTION ──
+        const settingsBtn = document.getElementById("settings-btn");
+        const settingsModal = document.getElementById("settings-modal");
+        const closeSettings = document.getElementById("close-settings");
+        const apiUrlInput = document.getElementById("api-url-input");
+        const testConnBtn = document.getElementById("test-conn-btn");
+        const saveSettingsBtn = document.getElementById("save-settings-btn");
+        const connTestFeedback = document.getElementById("connection-test-feedback");
+
+        // Set initial input value
+        apiUrlInput.value = API_URL;
+
+        settingsBtn.addEventListener("click", () => {
+            apiUrlInput.value = API_URL;
+            connTestFeedback.style.display = "none";
+            settingsModal.style.display = "flex";
+        });
+
+        const hideSettingsModal = () => {
+            settingsModal.style.display = "none";
+        };
+
+        closeSettings.addEventListener("click", hideSettingsModal);
+        
+        settingsModal.addEventListener("click", (e) => {
+            if (e.target === settingsModal) {
+                hideSettingsModal();
+            }
+        });
+
+        testConnBtn.addEventListener("click", async () => {
+            const testUrl = apiUrlInput.value.trim().replace(/\/$/, "");
+            connTestFeedback.style.display = "block";
+            connTestFeedback.style.color = "var(--text-muted)";
+            connTestFeedback.textContent = "Testing connection...";
+            
+            try {
+                const res = await fetch(`${testUrl}/health`);
+                if (res.ok) {
+                    const data = await res.json();
+                    connTestFeedback.style.color = "var(--accent-primary)";
+                    connTestFeedback.textContent = `✅ Connected! Status: ${data.status} (${data.ensemble_size} folds online)`;
+                } else {
+                    connTestFeedback.style.color = "var(--accent-danger)";
+                    connTestFeedback.textContent = `❌ Connected but server returned status ${res.status}`;
+                }
+            } catch (err) {
+                connTestFeedback.style.color = "var(--accent-danger)";
+                connTestFeedback.textContent = `❌ Connection failed: ${err.message}`;
+            }
+        });
+
+        saveSettingsBtn.addEventListener("click", () => {
+            const newUrl = apiUrlInput.value.trim().replace(/\/$/, "");
+            if (newUrl) {
+                API_URL = newUrl;
+                localStorage.setItem("bone_fracture_api_url", API_URL);
+                checkConnection();
+                hideSettingsModal();
+            }
+        });
     </script>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(8px); z-index: 1000; align-items: center; justify-content: center;">
+        <div class="glass-panel" style="width: 90%; max-width: 500px; padding: 2rem; border-radius: 16px; border: 1px solid var(--card-border); background: #0f172a; box-shadow: var(--shadow-premium); gap: 1.2rem; display: flex; flex-direction: column;">
+            <div class="panel-title" style="margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 0.75rem;">
+                <h2 style="font-size: 1.25rem;">🔧 API Server Settings</h2>
+                <button id="close-settings" style="background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer;">&times;</button>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; margin: 0;">
+                This frontend dashboard connects to the PyTorch 3-Fold Ensemble API. Set the endpoint address below. Use a local address or a live production URL (e.g. Hugging Face Spaces, Render, or Railway).
+            </p>
+            
+            <div class="input-group" style="display: flex; flex-direction: column; gap: 0.4rem;">
+                <label for="api-url-input" style="font-size: 0.8rem; color: var(--text-muted); font-weight: 500;">Backend API URL</label>
+                <input type="text" id="api-url-input" placeholder="e.g. http://localhost:8000" style="width: 100%; background: rgba(15, 23, 42, 0.8); border: 1px solid var(--card-border); border-radius: 8px; padding: 0.75rem 1rem; color: var(--text-main); font-family: inherit; font-size: 0.9rem; outline: none; transition: border-color 0.2s;" required>
+            </div>
+
+            <div id="connection-test-feedback" style="display: none; font-size: 0.8rem; font-weight: 500; min-height: 1.2rem; margin-top: -0.5rem;"></div>
+            
+            <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 0.5rem;">
+                <button class="action-btn" id="test-conn-btn" style="background: rgba(255,255,255,0.08); border: 1px solid var(--card-border); color: var(--text-main); font-size: 0.9rem; padding: 0.6rem 1.2rem; cursor: pointer; box-shadow: none; border-radius: 8px; font-weight: 600;">🧪 Test Connection</button>
+                <button class="action-btn" id="save-settings-btn" style="background: var(--accent-primary); color: #0f172a; border: none; font-size: 0.9rem; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);">💾 Save & Close</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
