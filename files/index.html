@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clinical 3-Fold Fracture Ensemble Dashboard</title>
+    <!-- Google Fonts: Outfit -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            --card-bg: rgba(30, 41, 59, 0.45);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --accent-primary: #10b981; /* Emerald */
+            --accent-warning: #f59e0b; /* Amber */
+            --accent-danger: #ef4444;  /* Rose */
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --shadow-premium: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* Header Styling */
+        header {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--card-border);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            width: 2.2rem;
+            height: 2.2rem;
+            background: var(--accent-primary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: #0f172a;
+            font-size: 1.2rem;
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+        }
+
+        .logo-title h1 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .logo-title p {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .api-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            border: 1px solid var(--card-border);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent-danger);
+            border-radius: 50%;
+            transition: background 0.3s ease;
+        }
+
+        .status-dot.online {
+            background: var(--accent-primary);
+            box-shadow: 0 0 8px var(--accent-primary);
+        }
+
+        /* Main Workspace */
+        main {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1.1fr 1.9fr;
+            gap: 1.5rem;
+            padding: 1.5rem 2rem;
+            max-width: 1600px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        @media (max-width: 1024px) {
+            main {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Card System */
+        .glass-panel {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            backdrop-filter: blur(8px);
+            box-shadow: var(--shadow-premium);
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+        }
+
+        .panel-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            padding-bottom: 0.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-title span {
+            color: var(--accent-primary);
+            font-size: 0.8rem;
+            background: rgba(16, 185, 129, 0.1);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+        }
+
+        /* File Upload */
+        .upload-area {
+            border: 2px dashed rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            padding: 2rem 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            background: rgba(255, 255, 255, 0.01);
+        }
+
+        .upload-area:hover {
+            border-color: var(--accent-primary);
+            background: rgba(16, 185, 129, 0.03);
+        }
+
+        .upload-area input {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .upload-icon {
+            font-size: 2rem;
+            margin-bottom: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .upload-text h3 {
+            font-size: 0.95rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .upload-text p {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* Form Inputs */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .input-group.full-width {
+            grid-column: span 2;
+        }
+
+        label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        input[type="number"], select {
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 0.6rem 0.8rem;
+            color: var(--text-main);
+            font-family: inherit;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        input[type="number"]:focus, select:focus {
+            border-color: var(--accent-primary);
+        }
+
+        /* Range Slider Customisation */
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            accent-color: var(--accent-primary);
+            background: rgba(15, 23, 42, 0.5);
+            height: 6px;
+            border-radius: 3px;
+            outline: none;
+        }
+
+        .slider-val {
+            font-size: 0.85rem;
+            min-width: 24px;
+            text-align: right;
+            font-weight: 600;
+            color: var(--accent-primary);
+        }
+
+        /* Primary Button */
+        button.action-btn {
+            background: var(--accent-primary);
+            color: #0f172a;
+            border: none;
+            border-radius: 8px;
+            padding: 0.9rem;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        button.action-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+            filter: brightness(1.1);
+        }
+
+        button.action-btn:disabled {
+            background: #334155;
+            color: var(--text-muted);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Results Display Layout */
+        .results-workspace {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            height: 100%;
+        }
+
+        @media (max-width: 768px) {
+            .results-workspace {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .visual-viewer {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .image-compare-box {
+            width: 100%;
+            aspect-ratio: 1;
+            max-width: 400px;
+            position: relative;
+            border-radius: 12px;
+            border: 1px solid var(--card-border);
+            overflow: hidden;
+            background: #090d16;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+        }
+
+        .preview-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .heatmap-img {
+            opacity: 0.5; /* Dynamic opacity via slider */
+            transition: opacity 0.05s ease;
+        }
+
+        .viewer-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            text-align: center;
+            padding: 2rem;
+            border: 1px dashed rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+        }
+
+        .blend-control {
+            width: 100%;
+            max-width: 400px;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--card-border);
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        /* Quantitative Analysis Card */
+        .report-viewer {
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+        }
+
+        .diagnosis-card {
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 10px;
+            padding: 1rem;
+        }
+
+        .metric-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .metric-value {
+            font-weight: 700;
+            font-size: 1.25rem;
+        }
+
+        .risk-badge {
+            font-size: 0.75rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .risk-low {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--accent-primary);
+        }
+
+        .risk-moderate {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--accent-warning);
+        }
+
+        .risk-high {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--accent-danger);
+        }
+
+        /* Dynamic Progress Bar */
+        .progress-track {
+            background: rgba(255, 255, 255, 0.05);
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            transition: width 1s cubic-bezier(0.1, 0.8, 0.2, 1);
+        }
+
+        .fill-low { background: var(--accent-primary); }
+        .fill-moderate { background: var(--accent-warning); }
+        .fill-high { background: var(--accent-danger); }
+
+        /* Uncertainty Details */
+        .uncertainty-box {
+            background: rgba(255, 255, 255, 0.02);
+            border-left: 3px solid var(--accent-primary);
+            padding: 0.75rem 1rem;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.85rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .uncertainty-box.warning {
+            border-left-color: var(--accent-warning);
+        }
+
+        .uncertainty-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            margin-top: 0.4rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* Loaders & Skeletons */
+        .pulse-skeleton {
+            background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.03) 75%);
+            background-size: 200% 100%;
+            animation: loading-wave 1.5s infinite;
+        }
+
+        @keyframes loading-wave {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        footer {
+            text-align: center;
+            padding: 1.5rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            border-top: 1px solid var(--card-border);
+            background: rgba(15, 23, 42, 0.8);
+            margin-top: auto;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        <div class="logo-section">
+            <div class="logo-icon">B</div>
+            <div class="logo-title">
+                <h1>Bone Fracture & Dislocation Ensemble</h1>
+                <p>3-Fold Calibrated Clinical Inference & Grad-CAM++ Web UI</p>
+            </div>
+        </div>
+        <div class="api-status" id="api-status">
+            <div class="status-dot" id="status-dot"></div>
+            <span id="status-text">Checking Connection...</span>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main>
+        <!-- Left: Upload and Form Inputs -->
+        <section class="glass-panel">
+            <div class="panel-title">
+                <h2>Clinical Inputs</h2>
+                <span id="ensemble-badge">Ensemble Size: 3</span>
+            </div>
+
+            <!-- Upload Area -->
+            <div class="upload-area" id="drop-zone">
+                <input type="file" id="image-input" accept="image/*" required>
+                <div class="upload-icon">📂</div>
+                <div class="upload-text">
+                    <h3 id="upload-filename">Drag & Drop Patient X-ray</h3>
+                    <p>Supports JPEG, PNG, TIFF, and WEBP formats</p>
+                </div>
+            </div>
+
+            <!-- Metadata Parameters -->
+            <div class="form-grid">
+                <div class="input-group">
+                    <label for="age">Age (Years)</label>
+                    <input type="number" id="age" value="45" min="0" max="120">
+                </div>
+
+                <div class="input-group">
+                    <label for="sex">Biological Sex</label>
+                    <select id="sex">
+                        <option value="1">Male</option>
+                        <option value="0">Female</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label for="bmi">BMI ($kg/m^2$)</label>
+                    <input type="number" id="bmi" value="24.5" step="0.1" min="10" max="70">
+                </div>
+
+                <div class="input-group">
+                    <label for="mechanism">Injury Mechanism</label>
+                    <select id="mechanism">
+                        <option value="0">Low-energy fall</option>
+                        <option value="1" selected>High-energy trauma</option>
+                        <option value="2">Pathological (chronic)</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label for="prior-fracture">Prior Fracture History</label>
+                    <select id="prior-fracture">
+                        <option value="0">No prior fractures</option>
+                        <option value="1">Has history of fracture</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label for="bone-density">DEXA T-score (Density)</label>
+                    <input type="number" id="bone-density" value="-1.0" step="0.1" min="-5" max="3">
+                </div>
+
+                <div class="input-group full-width">
+                    <label>Pain Score (0 - 10)</label>
+                    <div class="slider-container">
+                        <input type="range" id="pain-score" min="0" max="10" step="0.5" value="7.0">
+                        <span class="slider-val" id="pain-val">7.0</span>
+                    </div>
+                </div>
+
+                <div class="input-group full-width">
+                    <label for="cam-target">Grad-CAM Target Focus</label>
+                    <select id="cam-target">
+                        <option value="fracture">Localize Fracture Indicators</option>
+                        <option value="dislocation">Localize Dislocation Indicators</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="action-btn" id="diagnose-btn" disabled>
+                <span>🚀</span> Run Multi-Fold Diagnosis
+            </button>
+        </section>
+
+        <!-- Right: Diagnostic Output Visualization -->
+        <section class="glass-panel">
+            <div class="panel-title">
+                <h2>Diagnostic Analysis & Explainability</h2>
+            </div>
+
+            <div class="results-workspace">
+                <!-- Visual Box -->
+                <div class="visual-viewer">
+                    <div class="image-compare-box" id="viewer-box">
+                        <div class="viewer-placeholder" id="viewer-placeholder">
+                            <span style="font-size: 2.5rem; margin-bottom: 0.5rem;">🩺</span>
+                            <p>Upload a patient X-ray scan and trigger prediction to display overlay maps.</p>
+                        </div>
+                        <img id="base-img" class="preview-img" style="display: none;">
+                        <img id="cam-img" class="preview-img heatmap-img" style="display: none;">
+                    </div>
+
+                    <div class="blend-control" id="blend-control" style="display: none;">
+                        <label>Grad-CAM++ Overlay Opacity</label>
+                        <div class="slider-container">
+                            <input type="range" id="blend-slider" min="0" max="100" value="50">
+                            <span class="slider-val" id="blend-val">50%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Report Box -->
+                <div class="report-viewer" id="report-viewer">
+                    <div class="viewer-placeholder" id="report-placeholder">
+                        <p>Awaiting clinical input submission...</p>
+                    </div>
+
+                    <!-- Dynamic Report Content -->
+                    <div id="report-content" style="display: none; width: 100%;">
+                        <!-- Fracture Card -->
+                        <div class="diagnosis-card" style="margin-bottom: 1rem;">
+                            <div class="metric-header">
+                                <span>Bone Fracture Probability</span>
+                                <span class="risk-badge" id="frac-risk-badge">Moderate</span>
+                            </div>
+                            <div class="metric-value" id="frac-prob-text">0.00%</div>
+                            <div class="progress-track" style="margin-top: 0.5rem;">
+                                <div class="progress-fill" id="frac-progress"></div>
+                            </div>
+                        </div>
+
+                        <!-- Dislocation Card -->
+                        <div class="diagnosis-card" style="margin-bottom: 1rem;">
+                            <div class="metric-header">
+                                <span>Joint Dislocation Probability</span>
+                                <span class="risk-badge" id="disl-risk-badge">Moderate</span>
+                            </div>
+                            <div class="metric-value" id="disl-prob-text">0.00%</div>
+                            <div class="progress-track" style="margin-top: 0.5rem;">
+                                <div class="progress-fill" id="disl-progress"></div>
+                            </div>
+                        </div>
+
+                        <!-- Uncertainty Quantification Card -->
+                        <div class="uncertainty-box" id="uncertainty-card">
+                            <strong id="consensus-title">Strong Consensus Agreement</strong>
+                            <span id="confidence-index-text" style="font-size: 0.8rem; color: var(--text-muted);">Ensemble Confidence: --</span>
+                            <div class="uncertainty-grid">
+                                <div>Fracture SD: <span id="frac-sd-text">--</span></div>
+                                <div>Dislocation SD: <span id="disl-sd-text">--</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <p>Advanced Clinical AI Console (Offline Local Integration mode). Pre-Calibrated temperature states: T1=1.48 | T2=1.52 | T3=1.50.</p>
+    </footer>
+
+    <script>
+        // ── API CONFIGURATION ──
+        const API_URL = "http://localhost:8000";
+
+        // ── DOM ELEMENTS ──
+        const imageInput = document.getElementById("image-input");
+        const dropZone = document.getElementById("drop-zone");
+        const uploadFilename = document.getElementById("upload-filename");
+        const diagnoseBtn = document.getElementById("diagnose-btn");
+        const apiStatusDot = document.getElementById("status-dot");
+        const apiStatusText = document.getElementById("status-text");
+        
+        const viewerPlaceholder = document.getElementById("viewer-placeholder");
+        const reportPlaceholder = document.getElementById("report-placeholder");
+        const baseImg = document.getElementById("base-img");
+        const camImg = document.getElementById("cam-img");
+        const blendControl = document.getElementById("blend-control");
+        const blendSlider = document.getElementById("blend-slider");
+        const blendVal = document.getElementById("blend-val");
+        
+        const reportContent = document.getElementById("report-content");
+        const fracProbText = document.getElementById("frac-prob-text");
+        const fracRiskBadge = document.getElementById("frac-risk-badge");
+        const fracProgress = document.getElementById("frac-progress");
+        const dislProbText = document.getElementById("disl-prob-text");
+        const dislRiskBadge = document.getElementById("disl-risk-badge");
+        const dislProgress = document.getElementById("disl-progress");
+        
+        const uncertaintyCard = document.getElementById("uncertainty-card");
+        const consensusTitle = document.getElementById("consensus-title");
+        const confidenceIndexText = document.getElementById("confidence-index-text");
+        const fracSdText = document.getElementById("frac-sd-text");
+        const dislSdText = document.getElementById("disl-sd-text");
+
+        const painScoreSlider = document.getElementById("pain-score");
+        const painScoreVal = document.getElementById("pain-val");
+
+        // ── STATE VARIABLES ──
+        let uploadedFile = null;
+
+        // Pain Slider live text updates
+        painScoreSlider.addEventListener("input", (e) => {
+            painScoreVal.textContent = parseFloat(e.target.value).toFixed(1);
+        });
+
+        // Opacity Blend slider updates
+        blendSlider.addEventListener("input", (e) => {
+            const val = e.target.value;
+            blendVal.textContent = `${val}%`;
+            camImg.style.opacity = val / 100;
+        });
+
+        // ── INTERACTIVE DRAG & DROP UPLOAD ──
+        imageInput.addEventListener("change", handleFileSelection);
+        
+        dropZone.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = "var(--accent-primary)";
+            dropZone.style.background = "rgba(16, 185, 129, 0.05)";
+        });
+
+        dropZone.addEventListener("dragleave", () => {
+            dropZone.style.borderColor = "rgba(255, 255, 255, 0.15)";
+            dropZone.style.background = "rgba(255, 255, 255, 0.01)";
+        });
+
+        dropZone.addEventListener("drop", (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = "rgba(255, 255, 255, 0.15)";
+            dropZone.style.background = "rgba(255, 255, 255, 0.01)";
+            
+            if (e.dataTransfer.files.length > 0) {
+                imageInput.files = e.dataTransfer.files;
+                handleFileSelection();
+            }
+        });
+
+        function handleFileSelection() {
+            if (imageInput.files.length > 0) {
+                uploadedFile = imageInput.files[0];
+                uploadFilename.textContent = uploadedFile.name;
+                diagnoseBtn.disabled = false;
+                
+                // Show uploaded original in the visual viewer box
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    baseImg.src = e.target.result;
+                    baseImg.style.display = "block";
+                    camImg.style.display = "none";
+                    viewerPlaceholder.style.display = "none";
+                    blendControl.style.display = "none";
+                };
+                reader.readAsDataURL(uploadedFile);
+            }
+        }
+
+        // ── API HEALTH MONITORING ──
+        async function checkConnection() {
+            try {
+                const res = await fetch(`${API_URL}/health`);
+                if (res.ok) {
+                    const data = await res.json();
+                    apiStatusDot.className = "status-dot online";
+                    apiStatusText.textContent = `Online (${data.ensemble_size} Folds Loaded)`;
+                    document.getElementById("ensemble-badge").textContent = `Ensemble Size: ${data.ensemble_size}`;
+                } else {
+                    setOffline();
+                }
+            } catch (err) {
+                setOffline();
+            }
+        }
+
+        function setOffline() {
+            apiStatusDot.className = "status-dot";
+            apiStatusText.textContent = "Offline (Server Disconnected)";
+        }
+
+        // Initial check and periodic polling every 5s
+        checkConnection();
+        setInterval(checkConnection, 5000);
+
+        // ── INFERENCE TRIGGERS ──
+        diagnoseBtn.addEventListener("click", async () => {
+            if (!uploadedFile) return;
+
+            // Trigger visual UI state: loading skeletons
+            diagnoseBtn.disabled = true;
+            diagnoseBtn.innerHTML = `<span class="pulse-skeleton" style="width: 20px; height: 20px; display:inline-block; border-radius:50%;"></span> Executing Calibrated Diagnosis...`;
+            
+            viewerPlaceholder.style.display = "none";
+            reportPlaceholder.style.display = "none";
+            reportContent.style.display = "none";
+            
+            const formData = new FormData();
+            formData.append("xray", uploadedFile);
+            formData.append("age", parseFloat(document.getElementById("age").value));
+            formData.append("sex", parseInt(document.getElementById("sex").value));
+            formData.append("bmi", parseFloat(document.getElementById("bmi").value));
+            formData.append("mechanism", parseInt(document.getElementById("mechanism").value));
+            formData.append("prior_fracture", parseInt(document.getElementById("prior-fracture").value));
+            formData.append("bone_density", parseFloat(document.getElementById("bone-density").value));
+            formData.append("pain_score", parseFloat(painScoreSlider.value));
+            formData.append("generate_heatmap", "true");
+            formData.append("target", document.getElementById("cam-target").value);
+
+            try {
+                const response = await fetch(`${API_URL}/predict`, {
+                    method: "POST",
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Inference call failed. Details: ${await response.text()}`);
+                }
+
+                const res = await response.json();
+                
+                // Show completed values
+                displayResults(res);
+
+            } catch (error) {
+                alert(`Error running diagnostic: ${error.message}`);
+                console.error(error);
+            } finally {
+                diagnoseBtn.disabled = false;
+                diagnoseBtn.innerHTML = `<span>🚀</span> Run Multi-Fold Diagnosis`;
+            }
+        });
+
+        // ── RENDER PREDICTION RESULTS ──
+        function displayResults(data) {
+            // 1. Fracture Display
+            const fracVal = data.fracture_probability * 100;
+            fracProbText.textContent = `${fracVal.toFixed(2)}%`;
+            fracRiskBadge.textContent = `${data.fracture_risk} Risk`;
+            fracRiskBadge.className = `risk-badge risk-${data.fracture_risk.toLowerCase()}`;
+            
+            fracProgress.className = `progress-fill fill-${data.fracture_risk.toLowerCase()}`;
+            fracProgress.style.width = `${fracVal}%`;
+
+            // 2. Dislocation Display
+            const dislVal = data.dislocation_probability * 100;
+            dislProbText.textContent = `${dislVal.toFixed(2)}%`;
+            dislRiskBadge.textContent = `${data.dislocation_risk} Risk`;
+            dislRiskBadge.className = `risk-badge risk-${data.dislocation_risk.toLowerCase()}`;
+            
+            dislProgress.className = `progress-fill fill-${data.dislocation_risk.toLowerCase()}`;
+            dislProgress.style.width = `${dislVal}%`;
+
+            // 3. Uncertainty details
+            if (data.model_uncertainty) {
+                const unc = data.model_uncertainty;
+                consensusTitle.textContent = unc.consensus_agreement;
+                confidenceIndexText.textContent = `Ensemble Confidence Index: ${unc.confidence_score_percent.toFixed(1)}%`;
+                fracSdText.textContent = unc.fracture_std.toFixed(4);
+                dislSdText.textContent = unc.dislocation_std.toFixed(4);
+                
+                // Style consensus box borders based on risk variance
+                const maxSd = Math.max(unc.fracture_std, unc.dislocation_std);
+                if (maxSd > 0.18) {
+                    uncertaintyCard.className = "uncertainty-box warning";
+                } else {
+                    uncertaintyCard.className = "uncertainty-box";
+                }
+            }
+
+            // 4. Render Heatmap Overlay
+            if (data.heatmap_base64) {
+                let base64String = data.heatmap_base64;
+                if (!base64String.startsWith("data:")) {
+                    base64String = `data:image/jpeg;base64,${base64String}`;
+                }
+                
+                camImg.src = base64String;
+                camImg.style.display = "block";
+                
+                // Show blending controls
+                blendControl.style.display = "flex";
+                camImg.style.opacity = blendSlider.value / 100;
+            }
+
+            // Trigger visual transitions
+            reportContent.style.display = "block";
+        }
+    </script>
+</body>
+</html>

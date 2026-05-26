@@ -1,0 +1,19 @@
+{
+  "id": "goldypahal/bone-fracture-training",
+  "title": "Bone Fracture Training",
+  "code_file": "train.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": "true",
+  "enable_gpu": "true",
+  "enable_tpu": "false",
+  "enable_internet": "true",
+  "dataset_sources": [
+    "orvile/fracatlas",
+    "jasonroggy/grazpedwri-dx",
+    "subhradipdasnita/complete-grazpedwri-dx"
+  ],
+  "competition_sources": [],
+  "kernel_sources": [],
+  "model_sources": []
+}

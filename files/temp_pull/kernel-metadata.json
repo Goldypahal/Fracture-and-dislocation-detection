@@ -1,0 +1,19 @@
+{
+  "id": "goldypahal/bone-fracture-training",
+  "id_no": 120294540,
+  "title": "Bone Fracture Training",
+  "code_file": "bone-fracture-training.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "keywords": [],
+  "dataset_sources": [],
+  "kernel_sources": [],
+  "competition_sources": [],
+  "model_sources": [],
+  "docker_image": "gcr.io/kaggle-private-byod/python@sha256:00377cd1b3d470a605bc5b0ceca79969e369644e9b36802242a1c70e627372f9",
+  "machine_shape": "Gpu"
+}
