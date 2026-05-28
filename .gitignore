@@ -35,10 +35,8 @@ env/
 .vscode/
 .idea/
 
-# Large Model weights & checkpoints (Prevent GitHub 100MB Limit failure)
-checkpoints/*.pt
+# Large Model weights & checkpoints (Tracked via Git LFS to bypass limits)
 checkpoints/*.pth
-*.pt
 *.pth
 *.zip
 *.tar.gz
