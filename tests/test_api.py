@@ -78,3 +78,37 @@ def test_predict_endpoint_with_mock_image(client):
     assert 0.0 <= data["fracture_probability"] <= 1.0
     assert 0.0 <= data["dislocation_probability"] <= 1.0
     assert data["fracture_risk"] in ["Low", "Moderate", "High"]
+
+def test_predict_endpoint_with_invalid_ood_images(client):
+    """Verify that Out-of-Distribution images are successfully blocked with a 400 error."""
+    # 1. Test highly saturated colorful image (e.g. solid green)
+    img_color = np.zeros((224, 224, 3), dtype=np.uint8)
+    img_color[:, :] = [0, 255, 0] # Solid green (high saturation)
+    _, img_encoded = cv2.imencode(".jpg", img_color)
+    files = {"xray": ("color.jpg", io.BytesIO(img_encoded.tobytes()), "image/jpeg")}
+    payload = {
+        "age": "45.0", "sex": "1", "bmi": "25.5", "mechanism": "1",
+        "bone_density": "-1.5", "prior_fracture": "0", "pain_score": "7.0",
+        "generate_heatmap": "false", "target": "fracture"
+    }
+    response = client.post("/predict", data=payload, files=files)
+    assert response.status_code == 400
+    assert "Out-of-Distribution" in response.json()["detail"]
+
+    # 2. Test simple solid black image (low contrast/blank)
+    img_blank = np.zeros((224, 224, 3), dtype=np.uint8)
+    _, img_encoded = cv2.imencode(".jpg", img_blank)
+    files = {"xray": ("blank.jpg", io.BytesIO(img_encoded.tobytes()), "image/jpeg")}
+    response = client.post("/predict", data=payload, files=files)
+    assert response.status_code == 400
+    assert "Out-of-Distribution" in response.json()["detail"]
+
+    # 3. Test simple synthetic graphic / text (low unique gray levels / extreme pixels)
+    img_text = np.zeros((224, 224, 3), dtype=np.uint8)
+    # Draw simple thin white lines on a black background (binary image)
+    cv2.putText(img_text, "MOCK BONE XRAY", (20, 110), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+    _, img_encoded = cv2.imencode(".jpg", img_text)
+    files = {"xray": ("text.jpg", io.BytesIO(img_encoded.tobytes()), "image/jpeg")}
+    response = client.post("/predict", data=payload, files=files)
+    assert response.status_code == 400
+    assert "Out-of-Distribution" in response.json()["detail"]

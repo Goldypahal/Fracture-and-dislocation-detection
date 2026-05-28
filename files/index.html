@@ -846,7 +846,16 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error(`Inference call failed. Details: ${await response.text()}`);
+                    let errMsg = "Inference call failed.";
+                    try {
+                        const errJson = await response.json();
+                        errMsg = errJson.detail || errMsg;
+                    } catch (e) {
+                        try {
+                            errMsg = await response.text() || errMsg;
+                        } catch (e2) {}
+                    }
+                    throw new Error(errMsg);
                 }
 
                 const res = await response.json();

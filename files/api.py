@@ -182,12 +182,49 @@ def risk_label(prob: float) -> str:
     if prob < 0.65: return "Moderate"
     return "High"
 
+def validate_image_is_xray(bgr: np.ndarray) -> tuple:
+    """
+    Perform heuristic out-of-distribution (OOD) checks to verify if 
+    the uploaded image is likely a genuine medical X-ray.
+    """
+    # 1. Grayscale Check via Saturation (HSV)
+    hsv = cv2.cvtColor(bgr, cv2.COLOR_BGR2HSV)
+    s_channel = hsv[:, :, 1]
+    mean_sat = float(np.mean(s_channel))
+    if mean_sat > 25.0:
+        return False, f"Image contains active color channels (mean saturation {mean_sat:.1f}). A genuine medical X-ray must be grayscale."
+
+    # 2. Continuous Grayscale Density (Unique gray levels)
+    gray = cv2.cvtColor(bgr, cv2.COLOR_BGR2GRAY)
+    unique_vals = len(np.unique(gray))
+    if unique_vals < 35:
+        return False, f"Image lacks the continuous grayscale density profile of a live medical radiograph (detected only {unique_vals} unique gray levels)."
+
+    # 3. Solid Color / Blank Check (Low Standard Deviation)
+    std_dev = float(np.std(gray))
+    if std_dev < 10.0:
+        return False, f"Image has extremely low contrast / is mostly blank (std dev {std_dev:.1f}). Please upload a valid bone X-ray."
+
+    # 4. Synthetic Text / High-Contrast Graphics Check (Extreme Pixel Ratio)
+    # Check what fraction of the image is pure black or pure white
+    extreme_pixels = float(np.sum((gray <= 2) | (gray >= 253)) / gray.size)
+    if extreme_pixels > 0.97:
+        return False, "Image appears to be synthetic, high-contrast line art, or text (extreme black/white pixels cover over 97% of the image)."
+
+    return True, "Valid X-ray image"
+
 def preprocess_image(file_bytes: bytes) -> tuple:
     """Decode uploaded image bytes → numpy array + torch tensor."""
     arr = np.frombuffer(file_bytes, np.uint8)
     bgr = cv2.imdecode(arr, cv2.IMREAD_COLOR)
     if bgr is None:
         raise HTTPException(400, "Cannot decode image. Upload a JPEG/PNG X-ray.")
+    
+    # Perform Out-of-Distribution validation check
+    is_valid, msg = validate_image_is_xray(bgr)
+    if not is_valid:
+        raise HTTPException(400, f"Out-of-Distribution Image Rejected: {msg}")
+
     bgr_display = cv2.resize(bgr, (224, 224))
     rgb = cv2.cvtColor(bgr_display, cv2.COLOR_BGR2RGB)
 
